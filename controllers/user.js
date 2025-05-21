@@ -2,8 +2,12 @@ const User = require("../models/user");
 
 async function handleUserSignin(req, res) {
   const { email, password } = req.body;
-  const user = await User.matchPassword(email, password);
-  return res.redirect("/");
+  try {
+    const token = await User.matchPasswordAndGenerateToken(email, password);
+    return res.cookie("token", token).redirect("/");
+  } catch (error) {
+    return res.render("signin", { error: "Incorrect Email or Password" });
+  }
 }
 
 async function handleUserSignup(req, res) {
@@ -16,7 +20,12 @@ async function handleUserSignup(req, res) {
   return res.redirect("/");
 }
 
+function handleUserLogout(req, res) {
+  res.clearCookie("token").redirect("/");
+}
+
 module.exports = {
   handleUserSignin,
   handleUserSignup,
+  handleUserLogout,
 };
